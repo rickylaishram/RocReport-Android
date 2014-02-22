@@ -55,8 +55,9 @@
 
         <ImageView
             android:id="@+id/photo"
+            android:scaleType="centerCrop"
             android:src="@drawable/ic_launcher"
             android:layout_width="fill_parent"
-            android:layout_height="150dp" />
+            android:layout_height="fill_parent" />
     </LinearLayout>
 </RelativeLayout>
