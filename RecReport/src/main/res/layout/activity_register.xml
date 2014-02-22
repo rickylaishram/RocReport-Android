@@ -10,13 +10,22 @@
     android:paddingTop="@dimen/activity_vertical_margin">
 
     <ImageView
-        android:layout_alignParentTop="true"
         android:id="@+id/logo"
+        android:layout_alignParentTop="true"
         android:src="@drawable/ic_launcher"
         android:layout_width="fill_parent"
         android:layout_height="250px" />
 
+    <Button
+        android:layout_alignParentBottom="true"
+        android:id="@+id/signin"
+        android:text="Sign In"
+        android:textStyle="normal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+
     <ScrollView
+        android:layout_above="@id/signin"
         android:layout_below="@id/logo"
         android:id="@+id/login_form"
         android:layout_width="match_parent"
@@ -32,6 +41,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+
+                <EditText
+                    android:id="@+id/username"
+                    android:hint="Username"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
 
                 <AutoCompleteTextView
                     android:id="@+id/email"
@@ -60,18 +77,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Sign In"
+                    android:text="Register"
                     android:textStyle="bold"/>
 
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
-    <Button
-        android:layout_alignParentBottom="true"
-        android:id="@+id/register"
-        android:text="Register"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
+
 
 </RelativeLayout>
 

@@ -1,10 +1,13 @@
 package com.rocreport.android;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -21,13 +24,25 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.util.Base64;
 
 
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 import com.rocreport.utils.utils.Utils;
 import com.rocreport.utils.utils.Constants;
+
+import static com.rocreport.utils.utils.Constants.API_ENDPOINT_Add;
+import static com.rocreport.utils.utils.Constants.API_GEOCODE;
+import static com.rocreport.utils.utils.Constants.SP_USER_AUTH;
+import static com.rocreport.utils.utils.Constants.SP_USER_EMAIL;
+import static com.rocreport.utils.utils.Constants.SP_USER_PASS;
+import static com.rocreport.utils.utils.Constants.SP_USER_TOKEN;
+import static com.rocreport.utils.utils.Constants.API_ENDPOINT;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -38,6 +53,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -60,6 +76,7 @@ public class ReportActivity extends Activity {
     private double longitude, latitude;
 
     private String IMAGE_URL;
+    private String ADDRESS;
 
     private ProgressDialog pDialog;
     private Context CTX;
@@ -69,6 +86,7 @@ public class ReportActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_report);
 
+        getActionBar().setBackgroundDrawable(getResources().getDrawable(android.R.color.holo_blue_dark));
         CTX = this;
 
         Spinner spinner = (Spinner) findViewById(R.id.category);
@@ -77,8 +95,8 @@ public class ReportActivity extends Activity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
-        Button btnCamera = (Button) findViewById(R.id.camera);
-        Button btnSend = (Button) findViewById(R.id.send);
+        ImageButton btnCamera = (ImageButton) findViewById(R.id.camera);
+        ImageButton btnSend = (ImageButton) findViewById(R.id.send);
 
         btnCamera.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -119,6 +137,8 @@ public class ReportActivity extends Activity {
         latitude = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLatitude();
         longitude = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLongitude();
 
+        getAddress(latitude, longitude);
+
         EditText etLocation = (EditText) findViewById(R.id.address);
         etLocation.setText(latitude+","+longitude);
 
@@ -144,6 +164,8 @@ public class ReportActivity extends Activity {
 
                 EditText etLocation = (EditText) findViewById(R.id.address);
                 etLocation.setText(latitude+","+longitude);
+
+                getAddress(latitude, longitude);
             }
         };
 
@@ -190,6 +212,51 @@ public class ReportActivity extends Activity {
                 // Image capture failed, advise user
             }
         }
+    }
+
+    public void getAddress(double lat, double lng) {
+        AsyncHttpClient geocodeclient = new AsyncHttpClient();
+        geocodeclient.get(API_GEOCODE+lat+","+lng, new AsyncHttpResponseHandler(){
+            @Override
+            public void onStart() {
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody){
+                try {
+                    JSONObject json = new JSONObject(new String(responseBody));
+                    ADDRESS = json.getJSONArray("results").getJSONObject(0).getString("formatted_address");
+
+                    Log.v("Success", ADDRESS);
+                    EditText etLocation = (EditText) findViewById(R.id.address);
+                    etLocation.setText(ADDRESS);
+
+                } catch (Exception e) {
+
+                }
+
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error){
+                //tv_status.setText("Something went wrong :(");
+            }
+
+            @Override
+            public void onRetry() {
+                // Request was retried
+            }
+
+            @Override
+            public void onProgress(int bytesWritten, int totalSize) {
+                // Progress notification
+            }
+
+            @Override
+            public void onFinish() {
+            }
+        });
     }
 
     public class SendData extends AsyncTask<Bitmap, Void, Void> {
@@ -250,16 +317,30 @@ public class ReportActivity extends Activity {
             }
 
             //Upload Location
-            /*final String temp_lat = latitude_user+"";
-            final String temp_lng = longitude_user+"";
+            //final String temp_lat = latitude_user+"";
+            //final String temp_lng = longitude_user+"";
+
+            Spinner spinner = (Spinner) findViewById(R.id.category);
+            EditText title = (EditText) findViewById(R.id.title);
+            EditText details = (EditText) findViewById(R.id.details);
+
+            SharedPreferences sp = getSharedPreferences(SP_USER_AUTH, MODE_PRIVATE);
+            String emails = sp.getString(SP_USER_EMAIL, null);
+            String passwords = sp.getString(SP_USER_PASS, null);
 
             RequestParams params = new RequestParams();
-            params.put("location[latitude]",temp_lat);
-            params.put("location[longitude]",temp_lng);
-            params.put("location[radius]",50);*/
+            params.put("rocrep_update_nat",spinner.getSelectedItem().toString());
+            params.put("rocrep_update_name",title.getText().toString());
+            params.put("rocrep_update_more",details.getText().toString());
+            params.put("rocrep_update_pic",IMAGE_URL);
+            params.put("rocrep_update_latlong",latitude+";"+longitude);
+            params.put("rocrep_update_location",ADDRESS);
+            params.put("ismobile", "yes");
+            params.put("emails", emails);
+            params.put("passwords", passwords);
 
-            /*AsyncHttpClient locationclient = new AsyncHttpClient();
-            locationclient.post(API_ENDPOINT + API_NEW_LOCATION, params, new AsyncHttpResponseHandler(){
+            AsyncHttpClient apiclient = new AsyncHttpClient();
+            apiclient.post(API_ENDPOINT_Add, params, new AsyncHttpResponseHandler(){
 
                 @Override
                 public void onStart() {
@@ -267,54 +348,7 @@ public class ReportActivity extends Activity {
 
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody){
-                    AsyncHttpClient client1 = new AsyncHttpClient();
-                    client1.get(API_ENDPOINT + API_GET_LOCATIONS, new AsyncHttpResponseHandler() {
-
-                        @Override
-                        public void onStart() {
-                        }
-
-                        @Override
-                        public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-
-                            int id = 0;
-
-                            try {
-                                JSONArray json = new JSONArray(new String(responseBody));
-                                for(int i = 0; i < json.length(); i++) {
-                                    JSONObject element = json.getJSONObject(i);
-                                    String lat = element.getDouble("latitude")+"";
-                                    String lng = element.getDouble("longitude")+"";
-
-                                    if(lat.equals(temp_lat) && lng.equals(temp_lng)) {
-
-                                        locationid = element.getInt("id")+"";
-
-                                        break;
-                                    }
-                                }
-                            } catch (Exception e) {
-                            }
-                        }
-
-                        @Override
-                        public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                        }
-
-                        @Override
-                        public void onRetry() {
-                            // Request was retried
-                        }
-
-                        @Override
-                        public void onProgress(int bytesWritten, int totalSize) {
-                            // Progress notification
-                        }
-
-                        @Override
-                        public void onFinish() {
-                        }
-                    });
+                    Log.v("Success", new String(responseBody));
                 }
 
                 @Override
@@ -335,7 +369,7 @@ public class ReportActivity extends Activity {
                 @Override
                 public void onFinish() {
                 }
-            });*/
+            });
 
             return null;
         }
@@ -346,6 +380,12 @@ public class ReportActivity extends Activity {
             //Button btn_save = (Button) findViewById(R.id.btn_save);
             //btn_save.setEnabled(true);
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(R.anim.slide_left_out, R.anim.slide_left_in);
     }
 
 }

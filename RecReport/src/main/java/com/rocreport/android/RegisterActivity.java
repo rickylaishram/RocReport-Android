@@ -14,7 +14,6 @@ import android.content.Intent;
 import android.content.Loader;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 
@@ -43,6 +42,8 @@ import org.apache.http.Header;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.rocreport.utils.utils.Constants.API_REGISTER;
 import static com.rocreport.utils.utils.Constants.SP_USER_AUTH;
 import static com.rocreport.utils.utils.Constants.SP_USER_TOKEN;
 import static com.rocreport.utils.utils.Constants.SP_USER_EMAIL;
@@ -50,13 +51,14 @@ import static com.rocreport.utils.utils.Constants.SP_USER_PASS;
 import static com.rocreport.utils.utils.Constants.API_ENDPOINT;
 import static com.rocreport.utils.utils.Constants.API_LOGIN;
 
-public class LoginActivity extends Activity{
+public class RegisterActivity extends Activity{
 
     private UserLoginTask mAuthTask = null;
 
     // UI references.
     private EditText mPasswordView;
     private EditText mEmailView;
+    private EditText mUsernameView;
 
     private ProgressDialog pDialog;
     private Context CTX;
@@ -67,21 +69,22 @@ public class LoginActivity extends Activity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_register);
+
+        getActionBar().setBackgroundDrawable(getResources().getDrawable(android.R.color.holo_blue_dark));
 
         SharedPreferences sp = this.getSharedPreferences(SP_USER_AUTH, MODE_PRIVATE);
         if((sp.getString(SP_USER_EMAIL, null) != null) || (sp.getString(SP_USER_PASS, null) != null)) {
-            Intent mIntent = new Intent(LoginActivity.this, MainActivity.class);
+            Intent mIntent = new Intent(RegisterActivity.this, MainActivity.class);
             startActivity(mIntent);
         }
 
         CTX = this;
 
-        getActionBar().setBackgroundDrawable(getResources().getDrawable(android.R.color.holo_blue_dark));
-
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
 
         mPasswordView = (EditText) findViewById(R.id.password);
+        mUsernameView = (EditText) findViewById(R.id.username);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -93,8 +96,6 @@ public class LoginActivity extends Activity{
             }
         });
 
-        Typeface font_black = Typeface.createFromAsset(this.getAssets(), "Roboto-Light.ttf");
-
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -103,21 +104,16 @@ public class LoginActivity extends Activity{
             }
         });
 
-        Button btnRegister = (Button) findViewById(R.id.register);
+        Button btnRegister = (Button) findViewById(R.id.signin);
         btnRegister.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent mIntent = new Intent(LoginActivity.this, RegisterActivity.class);
+                Intent mIntent = new Intent(RegisterActivity.this, RegisterActivity.class);
                 startActivity(mIntent);
                 overridePendingTransition(R.anim.slide_right_in,R.anim.slide_right_out);
                 finish();
             }
         });
-
-        mEmailSignInButton.setTypeface(font_black);
-        mEmailView.setTypeface(font_black);
-        mPasswordView.setTypeface(font_black);
-        btnRegister.setTypeface(font_black);
     }
 
     public void attemptLogin() {
@@ -132,6 +128,7 @@ public class LoginActivity extends Activity{
         // Store values at the time of the login attempt.
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
+        String username = mUsernameView.getText().toString();
 
         boolean cancel = false;
         View focusView = null;
@@ -165,7 +162,7 @@ public class LoginActivity extends Activity{
             //mAuthTask = new UserLoginTask();
             //mAuthTask.execute();
 
-            sendData(email, password);
+            sendData(username, email, password);
         }
     }
     private boolean isEmailValid(String email) {
@@ -176,14 +173,15 @@ public class LoginActivity extends Activity{
         return password.length() > 4;
     }
 
-    private boolean sendData(final String email, final String password) {
+    private boolean sendData(String username, final String email, final String password) {
         final Boolean response = false;
 
         RequestParams params = new RequestParams();
-        params.put("action",API_LOGIN);
-        params.put("submit","Sign In");
-        params.put("emails",email);
-        params.put("passwords", password);
+        params.put("action",API_REGISTER);
+        params.put("submit","Register");
+        params.put("emailr",email);
+        params.put("namer", username);
+        params.put("passwordr", password);
         params.put("ismobile", "yes");
 
         AsyncHttpClient client = new AsyncHttpClient();
@@ -193,7 +191,7 @@ public class LoginActivity extends Activity{
 
             @Override
             public void onStart() {
-                pDialog.setMessage("Signing In. Please wait ...");
+                pDialog.setMessage("Registering. Please wait ...");
                 pDialog.show();
             }
 
@@ -204,6 +202,8 @@ public class LoginActivity extends Activity{
                 Log.v("Login response", resp);
 
                 if(resp.equals("1")) {
+                    Log.v("Login response", 1+"");
+
                     SharedPreferences.Editor sp = CTX.getSharedPreferences(SP_USER_AUTH, MODE_PRIVATE).edit();
                     sp.putString(SP_USER_EMAIL, email);
                     sp.putString(SP_USER_PASS, password);
@@ -211,10 +211,12 @@ public class LoginActivity extends Activity{
 
                     pDialog.dismiss();
 
-                    Intent mIntent = new Intent(LoginActivity.this, MainActivity.class);
+                    Intent mIntent = new Intent(RegisterActivity.this, MainActivity.class);
                     startActivity(mIntent);
-                    overridePendingTransition(R.anim.slide_right_in, R.anim.slide_right_out);
+                    overridePendingTransition(R.anim.slide_right_in,R.anim.slide_right_out);
                     finish();
+                } else {
+                    Log.v("Login response", 0+"");
                 }
             }
 
@@ -314,6 +316,3 @@ public class LoginActivity extends Activity{
         }
     }
 }
-
-
-
