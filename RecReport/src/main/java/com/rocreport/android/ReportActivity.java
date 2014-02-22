@@ -87,6 +87,7 @@ public class ReportActivity extends Activity {
         setContentView(R.layout.activity_report);
 
         getActionBar().setBackgroundDrawable(getResources().getDrawable(android.R.color.holo_blue_dark));
+        getActionBar().setTitle("Report");
         CTX = this;
 
         Spinner spinner = (Spinner) findViewById(R.id.category);
@@ -177,7 +178,7 @@ public class ReportActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.report, menu);
+        //getMenuInflater().inflate(R.menu.report, menu);
         return true;
     }
 
@@ -349,6 +350,9 @@ public class ReportActivity extends Activity {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody){
                     Log.v("Success", new String(responseBody));
+
+                    overridePendingTransition(R.anim.slide_left_out, R.anim.slide_left_in);
+                    finish();
                 }
 
                 @Override

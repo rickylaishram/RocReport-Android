@@ -13,8 +13,10 @@ public class MainData {
     public String loc_name;
     public String email;
     public String created;
+    public String details;
 
-    public void setData(String category, String title, String picture, String id, String loc_coord, String loc_name, String email, String created) {
+    public void setData(String category, String title, String picture, String id, String loc_coord,
+                        String loc_name, String email, String created, String details) {
         this.category = category;
         this.title = title;
         this.picture = picture;
@@ -23,5 +25,6 @@ public class MainData {
         this.loc_name = loc_name;
         this.email = email;
         this.created = created;
+        this.details = details;
     }
 }

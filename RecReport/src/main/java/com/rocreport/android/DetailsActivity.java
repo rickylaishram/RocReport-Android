@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -27,6 +28,9 @@ import org.json.JSONArray;
 import static com.rocreport.utils.utils.Constants.API_ENDPOINT_UPVOTE;
 
 import static com.rocreport.utils.utils.Constants.API_ENDPOINT_LIST;
+import static com.rocreport.utils.utils.Constants.SP_USER_AUTH;
+import static com.rocreport.utils.utils.Constants.SP_USER_EMAIL;
+import static com.rocreport.utils.utils.Constants.SP_USER_PASS;
 
 public class DetailsActivity extends Activity {
 
@@ -45,6 +49,7 @@ public class DetailsActivity extends Activity {
         String category = bundle.getString("category");
         String title = bundle.getString("title");
         String picture = bundle.getString("picture");
+        String details = bundle.getString("details");
         final String loc_coord = bundle.getString("loc_coord");
         final String id = bundle.getString("id");
         String loc_name = bundle.getString("loc_name");
@@ -55,6 +60,7 @@ public class DetailsActivity extends Activity {
         TextView tv_title = (TextView) findViewById(R.id.title);
         TextView tv_address = (TextView) findViewById(R.id.address);
         TextView tv_created = (TextView) findViewById(R.id.date);
+        TextView tv_description = (TextView) findViewById(R.id.description);
         ImageView iv_photo = (ImageView) findViewById(R.id.photo);
         ImageButton btn_vote = (ImageButton) findViewById(R.id.vote);
         ImageButton btn_map = (ImageButton) findViewById(R.id.map);
@@ -65,6 +71,7 @@ public class DetailsActivity extends Activity {
         tv_title.setText(title);
         tv_category.setText(category);
         tv_created.setText(created);
+        tv_description.setText(details);
 
         Picasso.with(this).load(picture).into(iv_photo);
 
@@ -73,6 +80,7 @@ public class DetailsActivity extends Activity {
         tv_title.setTypeface(font_black);
         tv_category.setTypeface(font_black);
         tv_created.setTypeface(font_black);
+        tv_description.setTypeface(font_black);
 
         btn_vote.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,7 +103,6 @@ public class DetailsActivity extends Activity {
             }
         });
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -124,9 +131,15 @@ public class DetailsActivity extends Activity {
     }
 
     public void sendVote(String id) {
+        SharedPreferences sp = getSharedPreferences(SP_USER_AUTH, MODE_PRIVATE);
+        String emails = sp.getString(SP_USER_EMAIL, null);
+        String passwords = sp.getString(SP_USER_PASS, null);
+
         RequestParams params = new RequestParams();
         params.put("ismobile", "yes");
         params.put("id", id);
+        params.put("passwords", passwords);
+        params.put("emails", emails);
 
         AsyncHttpClient client = new AsyncHttpClient();
         client.post(API_ENDPOINT_UPVOTE, params, new AsyncHttpResponseHandler(){
@@ -135,16 +148,17 @@ public class DetailsActivity extends Activity {
 
             @Override
             public void onStart() {
-                //pDialog.setMessage("Sending. Please wait ...");
-                //pDialog.show();
+                pDialog.setMessage("Saving your vote. Please wait ...");
+                pDialog.show();
             }
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody){
                 String resp = new String(responseBody);
                 ((ImageButton) findViewById(R.id.vote)).setEnabled(false);
+                ((ImageButton) findViewById(R.id.vote)).setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
                 Log.v("Login response", resp);
-                //pDialog.dismiss();
+                pDialog.dismiss();
             }
 
             @Override

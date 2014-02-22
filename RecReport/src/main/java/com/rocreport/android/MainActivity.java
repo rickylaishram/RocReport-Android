@@ -91,6 +91,7 @@ public class MainActivity extends Activity {
                 bundle.putString("loc_name", d.loc_name);
                 bundle.putString("email", d.email);
                 bundle.putString("created", d.created);
+                bundle.putString("details", d.details);
 
                 Intent mIntent = new Intent(MainActivity.this, DetailsActivity.class);
                 mIntent.putExtras(bundle);
@@ -104,12 +105,22 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_refresh) {
+            data.removeAllElements();
+            fetchData();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -146,7 +157,8 @@ public class MainActivity extends Activity {
                                 jarray.getJSONObject(i).getString("loc_coord"),
                                 jarray.getJSONObject(i).getString("loc_name"),
                                 jarray.getJSONObject(i).getString("email"),
-                                jarray.getJSONObject(i).getString("created"));
+                                jarray.getJSONObject(i).getString("created"),
+                                jarray.getJSONObject(i).getString("details"));
                         data.add(d);
                     }
 

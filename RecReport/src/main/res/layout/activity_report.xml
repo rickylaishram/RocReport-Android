@@ -40,8 +40,8 @@
         <Spinner
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
             android:id="@+id/category"
@@ -51,8 +51,8 @@
         <EditText
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:hint="Title"
             android:id="@+id/title"
             android:layout_width="fill_parent"
@@ -61,8 +61,8 @@
         <EditText
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:hint="Description"
             android:id="@+id/details"
             android:layout_width="fill_parent"
@@ -71,8 +71,8 @@
         <EditText
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:text="Address"
             android:enabled="false"
             android:id="@+id/address"
