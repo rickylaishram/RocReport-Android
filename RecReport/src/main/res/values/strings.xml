@@ -13,10 +13,16 @@
     <string name="hello_world">Hello world!</string>
 
     <string-array name="category_array">
-        <item>Snow Pileup</item>
-        <item>Broken Light</item>
+        <item>Trash</item>
+        <item>Abandoned Vehicle</item>
         <item>Graffiti</item>
-        <item>Pothole</item>
+        <item>Water Leak</item>
+        <item>Snow Pile Up</item>
+        <item>Broken Light</item>
     </string-array>
+
+    <string name="title_activity_register">Register</string>
+    <string name="title_activity_splash">SplashActivity</string>
+    <string name="title_activity_details">DetailsActivity</string>
 
 </resources>
