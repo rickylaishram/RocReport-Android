@@ -2,3 +2,10 @@
 /local.properties
 /.idea/workspace.xml
 .DS_Store
+*.apk
+.idea/
+build/
+*.class
+*.jar
+*.war
+*.ear
