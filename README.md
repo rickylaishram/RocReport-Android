@@ -6,4 +6,4 @@ Android app for RocReport
 
 License
 ================
-GPL
+GPLv3
