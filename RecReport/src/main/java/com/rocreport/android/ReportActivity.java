@@ -36,13 +36,9 @@ import com.loopj.android.http.RequestParams;
 import com.rocreport.utils.utils.Utils;
 import com.rocreport.utils.utils.Constants;
 
-import static com.rocreport.utils.utils.Constants.API_ENDPOINT_Add;
 import static com.rocreport.utils.utils.Constants.API_GEOCODE;
-import static com.rocreport.utils.utils.Constants.SP_USER_AUTH;
-import static com.rocreport.utils.utils.Constants.SP_USER_EMAIL;
-import static com.rocreport.utils.utils.Constants.SP_USER_PASS;
-import static com.rocreport.utils.utils.Constants.SP_USER_TOKEN;
 import static com.rocreport.utils.utils.Constants.API_ENDPOINT;
+import static com.rocreport.utils.utils.Constants.API_IMAGE_ADD;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -125,8 +121,8 @@ public class ReportActivity extends Activity {
             public void onClick(View v) {
                 Bitmap scaledPhoto = Utils.decodeSampledBitmapFromFilePath(IMAGE.toString(), 500, 500);
 
-                SendData upload = new SendData();
-                upload.execute(scaledPhoto);
+                /*SendData upload = new SendData();
+                upload.execute(scaledPhoto);*/
             }
         });
 
@@ -260,7 +256,7 @@ public class ReportActivity extends Activity {
         });
     }
 
-    public class SendData extends AsyncTask<Bitmap, Void, Void> {
+    /*public class SendData extends AsyncTask<Bitmap, Void, Void> {
 
         @Override
         protected void onPreExecute(){
@@ -277,7 +273,7 @@ public class ReportActivity extends Activity {
             bmap[0].compress(Bitmap.CompressFormat.JPEG, 100, bos);
             String sPhoto = Base64.encodeToString(bos.toByteArray(), Base64.DEFAULT);
 
-            HttpPost hpost = new HttpPost(Constants.IMGUR_ENDPOINT+Constants.IMGUR_UPLOAD);
+            HttpPost hpost = new HttpPost(API_ENDPOINT+API_IMAGE_ADD);
 
             List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
             nameValuePairs.add(new BasicNameValuePair("image", sPhoto));
@@ -384,12 +380,16 @@ public class ReportActivity extends Activity {
             //Button btn_save = (Button) findViewById(R.id.btn_save);
             //btn_save.setEnabled(true);
         }
-    }
+    }*/
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
         overridePendingTransition(R.anim.slide_left_out, R.anim.slide_left_in);
+    }
+
+    private void uploadPhoto() {
+
     }
 
 }

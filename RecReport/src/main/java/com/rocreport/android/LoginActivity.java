@@ -18,7 +18,6 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
@@ -27,36 +26,30 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.SignInButton;
+import android.widget.Toast;
+
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import org.apache.http.Header;
+import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
-import static com.rocreport.utils.utils.Constants.SP_USER_AUTH;
-import static com.rocreport.utils.utils.Constants.SP_USER_TOKEN;
-import static com.rocreport.utils.utils.Constants.SP_USER_EMAIL;
-import static com.rocreport.utils.utils.Constants.SP_USER_PASS;
+import static com.rocreport.utils.utils.Constants.API_AUTH_LOGIN;
 import static com.rocreport.utils.utils.Constants.API_ENDPOINT;
-import static com.rocreport.utils.utils.Constants.API_LOGIN;
+import static com.rocreport.utils.utils.Constants.CLIENT_ID;
 
 public class LoginActivity extends Activity{
-
-    private UserLoginTask mAuthTask = null;
 
     // UI references.
     private EditText mPasswordView;
     private EditText mEmailView;
+    private Button btnRegister;
+    private Button mEmailSignInButton;
 
     private ProgressDialog pDialog;
     private Context CTX;
@@ -64,21 +57,23 @@ public class LoginActivity extends Activity{
     private final String mEmail = null;
     private final String mPassword = null;
 
+    private Typeface font_black;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        SharedPreferences sp = this.getSharedPreferences(SP_USER_AUTH, MODE_PRIVATE);
-        if((sp.getString(SP_USER_EMAIL, null) != null) || (sp.getString(SP_USER_PASS, null) != null)) {
-            Intent mIntent = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(mIntent);
-        }
-
         CTX = this;
 
-        getActionBar().setBackgroundDrawable(getResources().getDrawable(android.R.color.holo_blue_dark));
+        //getActionBar().setBackgroundDrawable(getResources().getDrawable(android.R.color.holo_blue_dark));
+        getActionBar().hide();
 
+        setUi();
+        setFont();
+    }
+
+    private void setUi() {
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
 
         mPasswordView = (EditText) findViewById(R.id.password);
@@ -93,9 +88,7 @@ public class LoginActivity extends Activity{
             }
         });
 
-        Typeface font_black = Typeface.createFromAsset(this.getAssets(), "Roboto-Light.ttf");
-
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
+        mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -103,7 +96,7 @@ public class LoginActivity extends Activity{
             }
         });
 
-        Button btnRegister = (Button) findViewById(R.id.register);
+        btnRegister = (Button) findViewById(R.id.register);
         btnRegister.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -113,6 +106,10 @@ public class LoginActivity extends Activity{
                 finish();
             }
         });
+    }
+
+    private void setFont() {
+        font_black = Typeface.createFromAsset(this.getAssets(), "Roboto-Light.ttf");
 
         mEmailSignInButton.setTypeface(font_black);
         mEmailView.setTypeface(font_black);
@@ -121,10 +118,6 @@ public class LoginActivity extends Activity{
     }
 
     public void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
-        }
-
         // Reset errors.
         mEmailView.setError(null);
         mPasswordView.setError(null);
@@ -156,16 +149,9 @@ public class LoginActivity extends Activity{
         }
 
         if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
             focusView.requestFocus();
         } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            //mAuthTask = new UserLoginTask();
-            //mAuthTask.execute();
-
-            sendData(email, password);
+            loginUser(email, password);
         }
     }
     private boolean isEmailValid(String email) {
@@ -176,50 +162,55 @@ public class LoginActivity extends Activity{
         return password.length() > 4;
     }
 
-    private boolean sendData(final String email, final String password) {
-        final Boolean response = false;
-
+    private void loginUser(String email, String password) {
         RequestParams params = new RequestParams();
-        params.put("action",API_LOGIN);
-        params.put("submit","Sign In");
-        params.put("emails",email);
-        params.put("passwords", password);
-        params.put("ismobile", "yes");
+        params.put("id",CLIENT_ID);
+        params.put("email",email);
+        params.put("password", password);
 
         AsyncHttpClient client = new AsyncHttpClient();
-        client.post(API_ENDPOINT, params, new AsyncHttpResponseHandler(){
+        client.post(API_ENDPOINT + API_AUTH_LOGIN, params, new AsyncHttpResponseHandler() {
 
             ProgressDialog pDialog = new ProgressDialog(CTX);
 
             @Override
             public void onStart() {
-                pDialog.setMessage("Signing In. Please wait ...");
+                pDialog.setMessage("Login. Please wait ...");
                 pDialog.show();
             }
 
             @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody){
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 String resp = new String(responseBody);
 
-                Log.v("Login response", resp);
-
-                if(resp.equals("1")) {
-                    SharedPreferences.Editor sp = CTX.getSharedPreferences(SP_USER_AUTH, MODE_PRIVATE).edit();
-                    sp.putString(SP_USER_EMAIL, email);
-                    sp.putString(SP_USER_PASS, password);
-                    sp.commit();
+                try {
+                    JSONObject response = new JSONObject(resp);
+                    Boolean success = response.getString("status").equals("true");
+                    JSONObject data = response.getJSONObject("data");
 
                     pDialog.dismiss();
 
-                    Intent mIntent = new Intent(LoginActivity.this, MainActivity.class);
-                    startActivity(mIntent);
-                    overridePendingTransition(R.anim.slide_right_in, R.anim.slide_right_out);
-                    finish();
+                    if (success) {
+                        String token = data.getString("token");
+                        Log.v("Token", token);
+                        /*
+                        Intent mIntent = new Intent(RegisterActivity.this, MainActivity.class);
+                        startActivity(mIntent);
+                        overridePendingTransition(R.anim.slide_right_in,R.anim.slide_right_out);
+                        finish();
+                        */
+                    } else {
+                        String reason = data.getString("reason");
+                        Toast.makeText(CTX, reason, Toast.LENGTH_LONG).show();
+                    }
+
+                } catch (Exception e) {
+
                 }
             }
 
             @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error){
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                 //tv_status.setText("Something went wrong :(");
             }
 
@@ -237,81 +228,6 @@ public class LoginActivity extends Activity{
             public void onFinish() {
             }
         });
-
-        return response;
-    }
-
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-        @Override
-        protected void onPreExecute(){
-            super.onPreExecute();
-            pDialog = new ProgressDialog(CTX);
-            pDialog.setMessage("Sending ...");
-            pDialog.show();
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... a) {
-
-            RequestParams params = new RequestParams();
-            params.put("action",API_LOGIN);
-            params.put("submit","Sign In");
-            params.put("emails",mEmail);
-            params.put("passwords", mPassword);
-
-            AsyncHttpClient client = new AsyncHttpClient();
-            client.post(API_ENDPOINT, params, new AsyncHttpResponseHandler(){
-
-                @Override
-                public void onStart() {
-                }
-
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody){
-                    Log.v("Login response", new String(responseBody));
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error){
-                    //tv_status.setText("Something went wrong :(");
-                }
-
-                @Override
-                public void onRetry() {
-                    // Request was retried
-                }
-
-                @Override
-                public void onProgress(int bytesWritten, int totalSize) {
-                    // Progress notification
-                }
-
-                @Override
-                public void onFinish() {
-                }
-            });
-
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-            pDialog.dismiss();
-
-            if (success) {
-                finish();
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            pDialog.dismiss();
-        }
     }
 }
 

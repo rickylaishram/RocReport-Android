@@ -25,13 +25,6 @@ import com.squareup.picasso.Picasso;
 import org.apache.http.Header;
 import org.json.JSONArray;
 
-import static com.rocreport.utils.utils.Constants.API_ENDPOINT_UPVOTE;
-
-import static com.rocreport.utils.utils.Constants.API_ENDPOINT_LIST;
-import static com.rocreport.utils.utils.Constants.SP_USER_AUTH;
-import static com.rocreport.utils.utils.Constants.SP_USER_EMAIL;
-import static com.rocreport.utils.utils.Constants.SP_USER_PASS;
-
 public class DetailsActivity extends Activity {
 
     private Context ctx;
@@ -130,8 +123,9 @@ public class DetailsActivity extends Activity {
         overridePendingTransition(R.anim.slide_left_out, R.anim.slide_left_in);
     }
 
+
     public void sendVote(String id) {
-        SharedPreferences sp = getSharedPreferences(SP_USER_AUTH, MODE_PRIVATE);
+    /*    SharedPreferences sp = getSharedPreferences(SP_USER_AUTH, MODE_PRIVATE);
         String emails = sp.getString(SP_USER_EMAIL, null);
         String passwords = sp.getString(SP_USER_PASS, null);
 
@@ -182,6 +176,6 @@ public class DetailsActivity extends Activity {
             @Override
             public void onFinish() {
             }
-        });
+        });*/
     }
 }

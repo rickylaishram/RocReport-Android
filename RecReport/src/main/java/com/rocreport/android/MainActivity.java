@@ -39,15 +39,15 @@ import org.json.JSONObject;
 import java.util.Vector;
 
 import static com.rocreport.utils.utils.Constants.API_ENDPOINT;
-import static com.rocreport.utils.utils.Constants.API_ENDPOINT_LIST;
-import static com.rocreport.utils.utils.Constants.SP_USER_AUTH;
-import static com.rocreport.utils.utils.Constants.SP_USER_EMAIL;
-import static com.rocreport.utils.utils.Constants.SP_USER_PASS;
+import static com.rocreport.utils.utils.Constants.API_REPORT_NEARBY;
+import static com.rocreport.utils.utils.Constants.CLIENT_ID;
+import static com.rocreport.utils.utils.Constants.SP_AUTH;
+import static com.rocreport.utils.utils.Constants.SP_AUTH_TOKEN;
 
 public class MainActivity extends Activity {
 
     private Vector<MainData> data = new Vector<MainData>();
-    private Context ctx;
+    private Context CTX;
     private MainAdapter ADAPTER;
 
     @Override
@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ctx = this;
+        CTX = this;
 
         getActionBar().setBackgroundDrawable(getResources().getDrawable(android.R.color.holo_blue_dark));
         //getActionBar().setTitle("");
@@ -101,7 +101,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        fetchData();
+        fetchData(0,0);
     }
 
     @Override
@@ -120,20 +120,33 @@ public class MainActivity extends Activity {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
             data.removeAllElements();
-            fetchData();
+            fetchData(0,0);
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void fetchData() {
+    private void fetchData(int page, int orderby) {
+        int limit = 10;
+        int offset = page*limit;
+
+        SharedPreferences sp = CTX.getSharedPreferences(SP_AUTH, MODE_PRIVATE);
+        String token = sp.getString(SP_AUTH_TOKEN, null);
+
         RequestParams params = new RequestParams();
-        params.put("ismobile", "yes");
+        params.put("id", CLIENT_ID);
+        params.put("token", token);
+        params.put("limit", limit);
+        params.put("offset", offset);
+        params.put("latitude","");
+        params.put("longitude","");
+        params.put("radius","");
+        params.put("orderby", "");
 
         AsyncHttpClient client = new AsyncHttpClient();
-        client.post(API_ENDPOINT_LIST, params, new AsyncHttpResponseHandler(){
+        client.post(API_ENDPOINT+API_REPORT_NEARBY, params, new AsyncHttpResponseHandler(){
 
-            ProgressDialog pDialog = new ProgressDialog(ctx);
+            ProgressDialog pDialog = new ProgressDialog(CTX);
 
             @Override
             public void onStart() {

@@ -46,6 +46,18 @@
             android:name="com.rocreport.android.DetailsActivity"
             android:label="@string/title_activity_details" >
         </activity>
+        <activity
+            android:name="com.rocreport.android.ReportListActivity"
+            android:label="@string/title_report_list" >
+        </activity>
+        <activity
+            android:name="com.rocreport.android.ReportDetailActivity"
+            android:label="@string/title_report_detail"
+            android:parentActivityName="com.rocreport.android.ReportListActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.rocreport.android.ReportListActivity" />
+        </activity>
     </application>
 
     <!--
