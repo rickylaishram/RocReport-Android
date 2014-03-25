@@ -42,6 +42,8 @@ import org.json.JSONObject;
 import static com.rocreport.utils.utils.Constants.API_AUTH_LOGIN;
 import static com.rocreport.utils.utils.Constants.API_ENDPOINT;
 import static com.rocreport.utils.utils.Constants.CLIENT_ID;
+import static com.rocreport.utils.utils.Constants.SP_AUTH;
+import static com.rocreport.utils.utils.Constants.SP_AUTH_TOKEN;
 
 public class LoginActivity extends Activity{
 
@@ -192,13 +194,16 @@ public class LoginActivity extends Activity{
 
                     if (success) {
                         String token = data.getString("token");
-                        Log.v("Token", token);
-                        /*
-                        Intent mIntent = new Intent(RegisterActivity.this, MainActivity.class);
+
+                        SharedPreferences sp = getSharedPreferences(SP_AUTH, MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sp.edit();
+                        editor.putString(SP_AUTH_TOKEN, token);
+                        editor.commit();
+
+                        Intent mIntent = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(mIntent);
                         overridePendingTransition(R.anim.slide_right_in,R.anim.slide_right_out);
                         finish();
-                        */
                     } else {
                         String reason = data.getString("reason");
                         Toast.makeText(CTX, reason, Toast.LENGTH_LONG).show();

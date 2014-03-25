@@ -240,13 +240,16 @@ public class RegisterActivity extends Activity{
 
                     if(success) {
                         String token = data.getString("token");
-                        Log.v("Token", token);
-                        /*
+
+                        SharedPreferences sp = getSharedPreferences(SP_AUTH, MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sp.edit();
+                        editor.putString(SP_AUTH_TOKEN, token);
+                        editor.commit();
+
                         Intent mIntent = new Intent(RegisterActivity.this, MainActivity.class);
                         startActivity(mIntent);
                         overridePendingTransition(R.anim.slide_right_in,R.anim.slide_right_out);
                         finish();
-                        */
                     } else {
                         String reason = data.getString("reason");
 
