@@ -1,0 +1,30 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="fill_parent"
+    android:layout_width="fill_parent">
+
+    <ImageButton
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:id="@+id/report"
+        android:src="@drawable/ic_5_content_new"
+        android:background="@android:color/holo_blue_bright"
+        android:layout_alignParentBottom="true"
+        android:layout_width="fill_parent"
+        android:textColor="@android:color/white"
+        android:layout_height="wrap_content" />
+
+    <fragment
+        android:id="@+id/report_list"
+        android:name="com.rocreport.android.ReportListFragment"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_above="@id/report"
+        tools:context="com.rocreport.android.ReportListActivity"
+        tools:layout="@android:layout/list_content" />
+
+</RelativeLayout>
+
+

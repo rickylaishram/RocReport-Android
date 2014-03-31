@@ -24,5 +24,7 @@
     <string name="title_activity_register">Register</string>
     <string name="title_activity_splash">SplashActivity</string>
     <string name="title_activity_details">DetailsActivity</string>
+    <string name="title_report_list">Reports</string>
+    <string name="title_report_detail">Report Detail</string>
 
 </resources>

@@ -9,3 +9,5 @@ build/
 *.jar
 *.war
 *.ear
+
+RecReport/src/main/java/com/rocreport/utils/utils/Constants.java
