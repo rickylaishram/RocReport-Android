@@ -2,6 +2,7 @@ package com.rocreport.android;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.view.View;
@@ -28,6 +29,7 @@ public class ReportListFragment extends ListFragment {
     private MainAdapter ADAPTER;
     private Vector<MainData> data = new Vector<MainData>();
     private Context CTX;
+    private ImageButton report;
 
     /**
      * The serialization (saved instance state) Bundle key representing the
@@ -81,10 +83,23 @@ public class ReportListFragment extends ListFragment {
 
         CTX = getActivity();
 
+        setUI();
+    }
+
+    public void setUI() {
         ADAPTER = new MainAdapter(CTX, R.layout.adapter_main, data);
 
         setListAdapter(ADAPTER);
+        report = (ImageButton) getView().findViewById(R.id.report);
     }
+
+    public View.OnClickListener reportHandler = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Intent mIntent = new Intent(CTX, ReportActivity.class);
+            startActivity(mIntent);
+        }
+    };
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {

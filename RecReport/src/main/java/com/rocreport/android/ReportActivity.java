@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
@@ -28,8 +29,14 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.util.Base64;
+import android.widget.Toast;
 
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationRequestCreator;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -39,6 +46,10 @@ import com.rocreport.utils.utils.Constants;
 import static com.rocreport.utils.utils.Constants.API_GEOCODE;
 import static com.rocreport.utils.utils.Constants.API_ENDPOINT;
 import static com.rocreport.utils.utils.Constants.API_IMAGE_ADD;
+import static com.rocreport.utils.utils.Constants.API_REPORT_ADD;
+import static com.rocreport.utils.utils.Constants.CLIENT_ID;
+import static com.rocreport.utils.utils.Constants.SP_AUTH;
+import static com.rocreport.utils.utils.Constants.SP_AUTH_TOKEN;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -54,12 +65,14 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReportActivity extends Activity {
+public class ReportActivity extends Activity implements GooglePlayServicesClient.ConnectionCallbacks,
+        GooglePlayServicesClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -70,12 +83,31 @@ public class ReportActivity extends Activity {
     private LocationManager locationManager;
     private LocationListener locationListener;
     private double longitude, latitude;
+    private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+    private LocationClient mLocationClient;
+    private Location mCurrentLocation;
+    private LocationRequest mLocationRequest;
 
     private String IMAGE_URL;
-    private String ADDRESS;
+    private String FORMATTED_ADDRESS;
+    private String COUNTRY;
+    private String ADMIN_AREA_LEVEL_1;
+    private String ADMIN_AREA_LEVEL_2;
+    private String LOCALITY;
 
     private ProgressDialog pDialog;
     private Context CTX;
+
+    private Spinner spinner;
+    private ImageButton btnCamera;
+    private ImageButton btnSend;
+    private EditText etLocation;
+    private EditText details;
+
+    public static final int UPDATE_INTERVAL_IN_SECONDS = 5;
+    private static final int FASTEST_INTERVAL_IN_SECONDS = 1;
+    private static final long UPDATE_INTERVAL = 1000*UPDATE_INTERVAL_IN_SECONDS;
+    private static final long FASTEST_INTERVAL = 1000*FASTEST_INTERVAL_IN_SECONDS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,104 +117,121 @@ public class ReportActivity extends Activity {
         getActionBar().setBackgroundDrawable(getResources().getDrawable(android.R.color.holo_blue_dark));
         getActionBar().setTitle("Report");
         CTX = this;
+        mLocationClient = new LocationClient(this, this, this);
+        mLocationRequest = new LocationRequest();
 
-        Spinner spinner = (Spinner) findViewById(R.id.category);
+        setUI();
+    }
+
+    private void initializeLocationListener() {
+        mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(UPDATE_INTERVAL);
+        mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
+    }
+
+    private void setUI() {
+        spinner = (Spinner) findViewById(R.id.category);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.category_array, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
-        ImageButton btnCamera = (ImageButton) findViewById(R.id.camera);
-        ImageButton btnSend = (ImageButton) findViewById(R.id.send);
+        btnCamera = (ImageButton) findViewById(R.id.camera);
+        btnSend = (ImageButton) findViewById(R.id.send);
+        etLocation = (EditText) findViewById(R.id.address);
+        details = (EditText) findViewById(R.id.details);
 
-        btnCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                PIC_REQUEST = (int) System.currentTimeMillis();
-                // create Intent to take a picture and return control to the calling application
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        btnCamera.setOnClickListener(cameraHandler);
+        btnSend.setOnClickListener(sendHandler);
+    }
 
-                File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "rocreport");
-                if(!dir.exists()) {
-                    dir.mkdirs();
-                }
+    private View.OnClickListener cameraHandler = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            PIC_REQUEST = (int) System.currentTimeMillis();
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-                IMAGE = new File(dir.getPath() + File.separator + PIC_REQUEST + ".jpg");
-                fileUri = Uri.fromFile(IMAGE); // create a file to save the image
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
-
-                // start the image capture Intent
-                startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
-            }
-        });
-
-        btnSend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Bitmap scaledPhoto = Utils.decodeSampledBitmapFromFilePath(IMAGE.toString(), 500, 500);
-
-                /*SendData upload = new SendData();
-                upload.execute(scaledPhoto);*/
-            }
-        });
-
-        /* Location part
-		 * Continuously update while user is in activity
-		 */
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        latitude = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLatitude();
-        longitude = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLongitude();
-
-        getAddress(latitude, longitude);
-
-        EditText etLocation = (EditText) findViewById(R.id.address);
-        etLocation.setText(latitude+","+longitude);
-
-        locationListener = new LocationListener() {
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {}
-
-            @Override
-            public void onProviderEnabled(String provider) {}
-
-            @Override
-            public void onProviderDisabled(String provider) {
-				/* If GPS is disable launch Locations Settings */
-                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                startActivity(intent);
+            File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "rocreport");
+            if(!dir.exists()) {
+                dir.mkdirs();
             }
 
-            @Override
-            public void onLocationChanged(Location location) {
-                latitude = location.getLatitude();
-                longitude = location.getLongitude();
+            IMAGE = new File(dir.getPath() + File.separator + PIC_REQUEST + ".jpg");
+            fileUri = Uri.fromFile(IMAGE); // create a file to save the image
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
 
-                EditText etLocation = (EditText) findViewById(R.id.address);
-                etLocation.setText(latitude+","+longitude);
+            // start the image capture Intent
+            startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+        }
+    };
 
-                getAddress(latitude, longitude);
+    private View.OnClickListener sendHandler = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            uploadImage();
+        }
+    };
+
+    @Override
+    public void onConnected(Bundle dataBundle) {
+        mCurrentLocation = mLocationClient.getLastLocation();
+        mLocationClient.requestLocationUpdates(mLocationRequest, this);
+
+        getAddress(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+    }
+
+    @Override
+    public void onDisconnected() {
+        Toast.makeText(this, "Disconnected. Please re-connect.",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+        if (connectionResult.hasResolution()) {
+            try {
+                // Start an Activity that tries to resolve the error
+                connectionResult.startResolutionForResult(
+                        this,
+                        CONNECTION_FAILURE_RESOLUTION_REQUEST);
+            } catch (IntentSender.SendIntentException e) {
+                // Log the error
+                e.printStackTrace();
             }
-        };
+        } else {
+            Toast.makeText(CTX, "Something went wrong!", Toast.LENGTH_LONG).show();
+        }
+    }
 
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+    // Define the callback method that receives location updates
+    @Override
+    public void onLocationChanged(Location location) {
+        mCurrentLocation = location;
+        getAddress(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mLocationClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        mLocationClient.disconnect();
+        super.onStop();
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.report, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
@@ -194,12 +243,28 @@ public class ReportActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                //File dir = new File(Environment.getExternalStorageDirectory(), "Spiders");
                 File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "rocreport");
-                File reimage = new File(dir.getPath() + File.separator + PIC_REQUEST + ".jpg");
-                IMAGE = reimage;
+                File ori_image = new File(dir.getPath() + File.separator + PIC_REQUEST + ".jpg");
+                IMAGE = ori_image;
 
-                Bitmap scaledPhoto = Utils.decodeSampledBitmapFromFilePath(reimage.toString(), 400, 400);
+                Bitmap scaledPhoto = Utils.decodeSampledBitmapFromFilePath(ori_image.toString(), 500, 500);
+
+                // Save the scaled image
+                try{
+                    File scaled_image = new File(getCacheDir(), PIC_REQUEST + "_s.jpg");
+
+                    //Compress image below 500kb
+                    int i = 0;
+                    do {
+                        FileOutputStream out = new FileOutputStream(scaled_image);
+                        scaledPhoto.compress(Bitmap.CompressFormat.JPEG, (100 - 10*i), out);
+                        i++;
+                    } while (scaled_image.length() > 50000);
+
+                    IMAGE = scaled_image;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 ImageView photo = (ImageView) findViewById(R.id.photo);
                 photo.setImageBitmap(scaledPhoto);
@@ -222,174 +287,149 @@ public class ReportActivity extends Activity {
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody){
                 try {
                     JSONObject json = new JSONObject(new String(responseBody));
-                    ADDRESS = json.getJSONArray("results").getJSONObject(0).getString("formatted_address");
+                    JSONObject result = json.getJSONArray("results").getJSONObject(0);
+                    FORMATTED_ADDRESS = result.getString("formatted_address");
+                    JSONArray components = result.getJSONArray("address_components");
 
-                    Log.v("Success", ADDRESS);
-                    EditText etLocation = (EditText) findViewById(R.id.address);
-                    etLocation.setText(ADDRESS);
+                    for (int i = 0; i < components.length(); i++) {
+                        JSONObject item = components.getJSONObject(i);
+                        String type = item.getJSONArray("types").getString(0);
+
+                        if(type.equals("locality") || type.equals("sublocality")) {
+                            LOCALITY = item.getString("long_name");
+                        } else if(type.equals("administrative_area_level_2")) {
+                            ADMIN_AREA_LEVEL_2 = item.getString("long_name");
+                        } else if(type.equals("administrative_area_level_1")) {
+                            ADMIN_AREA_LEVEL_1 = item.getString("long_name");
+                        } else if(type.equals("country")) {
+                            COUNTRY = item.getString("long_name");
+                        }
+                    }
+
+                    etLocation.setText(FORMATTED_ADDRESS);
 
                 } catch (Exception e) {
-
+                    e.printStackTrace();
                 }
-
-
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error){
                 //tv_status.setText("Something went wrong :(");
             }
+        });
+    }
 
+    private void sendReport() {
+        SharedPreferences sp = CTX.getSharedPreferences(SP_AUTH, MODE_PRIVATE);
+        String token = sp.getString(SP_AUTH_TOKEN, null);
+
+        RequestParams params = new RequestParams();
+        params.put("id", CLIENT_ID);
+        params.put("token", token);
+        params.put("formatted_address", FORMATTED_ADDRESS);
+        params.put("country", COUNTRY);
+        params.put("admin_level_1", ADMIN_AREA_LEVEL_1);
+        params.put("admin_level_2", ADMIN_AREA_LEVEL_2);
+        params.put("locality", LOCALITY);
+        params.put("latitude", mCurrentLocation.getLatitude()+"");
+        params.put("longitude", mCurrentLocation.getLongitude()+"");
+        params.put("category", spinner.getSelectedItem().toString());
+        params.put("description", details.getText().toString());
+        params.put("picture", IMAGE_URL);
+        params.put("novote", "true"); //Set to true for the time being
+
+        final ProgressDialog pDialog = new ProgressDialog(CTX);
+
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.post(API_ENDPOINT+API_REPORT_ADD, params, new AsyncHttpResponseHandler(){
             @Override
-            public void onRetry() {
-                // Request was retried
+            public void onStart() {
+                pDialog.setMessage("Sending report");
+                pDialog.show();
+            }
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody){
+                try {
+                    JSONObject response = new JSONObject(new String(responseBody));
+                    Boolean status = response.getString("status").equals("true");
+
+                    if(status) {
+                        JSONObject data = response.getJSONObject("data");
+                        //No duplicate detection for time being
+                        overridePendingTransition(R.anim.slide_left_out, R.anim.slide_left_in);
+                        finish();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                pDialog.dismiss();
             }
 
             @Override
-            public void onProgress(int bytesWritten, int totalSize) {
-                // Progress notification
-            }
-
-            @Override
-            public void onFinish() {
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error){
+                String response = new String(responseBody);
+                Log.e("Error", response);
+                pDialog.dismiss();
+                Toast.makeText(CTX, "Something has gone wrong", Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    /*public class SendData extends AsyncTask<Bitmap, Void, Void> {
+    private void uploadImage() {
 
-        @Override
-        protected void onPreExecute(){
-            super.onPreExecute();
-            pDialog = new ProgressDialog(CTX);
-            pDialog.setMessage("Sending ...");
-            pDialog.show();
+        SharedPreferences sp = CTX.getSharedPreferences(SP_AUTH, MODE_PRIVATE);
+        String token = sp.getString(SP_AUTH_TOKEN, null);
+
+        RequestParams params = new RequestParams();
+        params.put("id", CLIENT_ID);
+        params.put("token", token);
+        try {
+            params.put("image", IMAGE);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        @Override
-        public Void doInBackground(Bitmap... bmap) {
+        final ProgressDialog pDialog = new ProgressDialog(CTX);
 
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            bmap[0].compress(Bitmap.CompressFormat.JPEG, 100, bos);
-            String sPhoto = Base64.encodeToString(bos.toByteArray(), Base64.DEFAULT);
-
-            HttpPost hpost = new HttpPost(API_ENDPOINT+API_IMAGE_ADD);
-
-            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-            nameValuePairs.add(new BasicNameValuePair("image", sPhoto));
-            nameValuePairs.add(new BasicNameValuePair("type", "base64"));
-
-            try
-            {
-                hpost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-            } catch (UnsupportedEncodingException e) {
-                Log.e("Upload", e.toString());
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.post(API_ENDPOINT+API_IMAGE_ADD, params, new AsyncHttpResponseHandler(){
+            @Override
+            public void onStart() {
+                pDialog.setMessage("Uploading Photo");
+                pDialog.show();
             }
 
-            hpost.setHeader("Authorization", Constants.IMGUR_AUTH);
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody){
+                try {
+                    JSONObject response = new JSONObject(new String(responseBody));
+                    Boolean status = response.getString("status").equals("true");
 
-            DefaultHttpClient client = new DefaultHttpClient();
-            HttpResponse resp = null;
-            try
-            {
-                resp = client.execute(hpost);
-            } catch (ClientProtocolException e)
-            {
-                Log.e("Upload", e.toString());
-            } catch (IOException e)
-            {
-                Log.e("Upload", e.toString());
+                    if(status) {
+                        JSONObject data = response.getJSONObject("data");
+                        IMAGE_URL = data.getString("image_url");
+
+                        sendReport();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                pDialog.dismiss();
             }
 
-            String result = null;
-            try {
-                result = EntityUtils.toString(resp.getEntity());
-                JSONObject json = new JSONObject(result);
-                JSONObject data = json.getJSONObject("data");
-                IMAGE_URL = data.getString("link");
-                Log.v("Image", IMAGE_URL+"");
-                int i = 0;
-            } catch (Exception e) {
-                Log.e("Upload", e.toString());
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error){
+                pDialog.dismiss();
+                Toast.makeText(CTX, "Something went wrong", Toast.LENGTH_LONG).show();
             }
-
-            //Upload Location
-            //final String temp_lat = latitude_user+"";
-            //final String temp_lng = longitude_user+"";
-
-            Spinner spinner = (Spinner) findViewById(R.id.category);
-            EditText title = (EditText) findViewById(R.id.title);
-            EditText details = (EditText) findViewById(R.id.details);
-
-            SharedPreferences sp = getSharedPreferences(SP_USER_AUTH, MODE_PRIVATE);
-            String emails = sp.getString(SP_USER_EMAIL, null);
-            String passwords = sp.getString(SP_USER_PASS, null);
-
-            RequestParams params = new RequestParams();
-            params.put("rocrep_update_nat",spinner.getSelectedItem().toString());
-            params.put("rocrep_update_name",title.getText().toString());
-            params.put("rocrep_update_more",details.getText().toString());
-            params.put("rocrep_update_pic",IMAGE_URL);
-            params.put("rocrep_update_latlong",latitude+";"+longitude);
-            params.put("rocrep_update_location",ADDRESS);
-            params.put("ismobile", "yes");
-            params.put("emails", emails);
-            params.put("passwords", passwords);
-
-            AsyncHttpClient apiclient = new AsyncHttpClient();
-            apiclient.post(API_ENDPOINT_Add, params, new AsyncHttpResponseHandler(){
-
-                @Override
-                public void onStart() {
-                }
-
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody){
-                    Log.v("Success", new String(responseBody));
-
-                    overridePendingTransition(R.anim.slide_left_out, R.anim.slide_left_in);
-                    finish();
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error){
-                    //tv_status.setText("Something went wrong :(");
-                }
-
-                @Override
-                public void onRetry() {
-                    // Request was retried
-                }
-
-                @Override
-                public void onProgress(int bytesWritten, int totalSize) {
-                    // Progress notification
-                }
-
-                @Override
-                public void onFinish() {
-                }
-            });
-
-            return null;
-        }
-
-        @Override
-        public void onPostExecute(Void a) {
-            pDialog.dismiss();
-            //Button btn_save = (Button) findViewById(R.id.btn_save);
-            //btn_save.setEnabled(true);
-        }
-    }*/
+        });
+    }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
         overridePendingTransition(R.anim.slide_left_out, R.anim.slide_left_in);
     }
-
-    private void uploadPhoto() {
-
-    }
-
 }
