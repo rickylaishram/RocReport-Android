@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.hardware.Camera;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +18,11 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -29,53 +36,30 @@ public class DetailsActivity extends Activity {
 
     private Context ctx;
 
+    private TextView tvCategory, tvAddress, tvDescription;
+    private ImageView ivPhoto;
+    private ImageButton btnVote;
+    private GoogleMap mMap;
+
+    private String datCategory, datPicture, datId, datLongitude, datLatitude, datLocname, datEmail, datCreated, datDetails, datScore, datVote, datInform;
+    private Boolean datVoted, datIninform;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
 
         getActionBar().setBackgroundDrawable(getResources().getDrawable(android.R.color.holo_blue_dark));
-
+        getActionBar().setTitle("Report Details");
+        getActionBar().setDisplayHomeAsUpEnabled(true);
         ctx = this;
 
-        Bundle bundle = getIntent().getExtras();
-        String category = bundle.getString("category");
-        String title = bundle.getString("title");
-        String picture = bundle.getString("picture");
-        String details = bundle.getString("details");
-        final String loc_coord = bundle.getString("loc_coord");
-        final String id = bundle.getString("id");
-        String loc_name = bundle.getString("loc_name");
-        String email = bundle.getString("email");
-        String created = bundle.getString("created");
+        setUi();
+        getBundleData(getIntent().getExtras());
+        setData();
+        setFont();
 
-        TextView tv_category = (TextView) findViewById(R.id.category);
-        TextView tv_title = (TextView) findViewById(R.id.title);
-        TextView tv_address = (TextView) findViewById(R.id.address);
-        TextView tv_created = (TextView) findViewById(R.id.date);
-        TextView tv_description = (TextView) findViewById(R.id.description);
-        ImageView iv_photo = (ImageView) findViewById(R.id.photo);
-        ImageButton btn_vote = (ImageButton) findViewById(R.id.vote);
-        ImageButton btn_map = (ImageButton) findViewById(R.id.map);
-
-        getActionBar().setTitle(category);
-
-        tv_address.setText(loc_name);
-        tv_title.setText(title);
-        tv_category.setText(category);
-        tv_created.setText(created);
-        tv_description.setText(details);
-
-        Picasso.with(this).load(picture).into(iv_photo);
-
-        Typeface font_black = Typeface.createFromAsset(this.getAssets(), "Roboto-Black.ttf");
-        tv_address.setTypeface(font_black);
-        tv_title.setTypeface(font_black);
-        tv_category.setTypeface(font_black);
-        tv_created.setTypeface(font_black);
-        tv_description.setTypeface(font_black);
-
-        btn_vote.setOnClickListener(new View.OnClickListener() {
+        /*btn_vote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 sendVote(id);
@@ -94,7 +78,57 @@ public class DetailsActivity extends Activity {
                 Intent intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
                 startActivity(intent);
             }
-        });
+        });*/
+    }
+
+    private void setFont() {
+        Typeface font = Typeface.createFromAsset(this.getAssets(), "Roboto-Light.ttf");
+        tvCategory.setTypeface(font);
+        tvAddress.setTypeface(font);
+        tvDescription.setTypeface(font);
+    }
+
+    private void setData() {
+        tvCategory.setText(datCategory);
+        tvAddress.setText(datLocname);
+        tvDescription.setText(datDetails);
+
+        Picasso.with(ctx).load(datPicture).into(ivPhoto);
+
+        LatLng location = new LatLng(Double.parseDouble(datLatitude), Double.parseDouble(datLongitude));
+        mMap.getUiSettings().setCompassEnabled(true);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+        mMap.setMyLocationEnabled(true);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location,18));
+        mMap.addMarker(new MarkerOptions().position(location).draggable(false));
+        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+    }
+
+    private void setUi() {
+        tvCategory = (TextView) findViewById(R.id.category);
+        tvAddress = (TextView) findViewById(R.id.address);
+        tvDescription = (TextView) findViewById(R.id.description);
+        ivPhoto = (ImageView) findViewById(R.id.photo);
+        btnVote = (ImageButton) findViewById(R.id.vote);
+        mMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+    }
+
+    private void getBundleData(Bundle bundle) {
+        datCategory = bundle.getString("category");
+        datPicture = bundle.getString("picture");
+        datId = bundle.getString("id");
+        datLongitude = bundle.getString("longitude");
+        datLatitude = bundle.getString("latitude");
+        datLocname = bundle.getString("loc_name");
+        datEmail = bundle.getString("email");
+        datCreated = bundle.getString("created");
+        datDetails = bundle.getString("details");
+        datScore = bundle.getString("score");
+        datVote = bundle.getString("vote_count");
+        datInform = bundle.getString("inform_count");
+        datVoted = bundle.getBoolean("has_votes");
+        datIninform = bundle.getBoolean("in_inform");
+
     }
 
     @Override
@@ -107,13 +141,18 @@ public class DetailsActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+
+        switch (id) {
+            case android.R.id.home:
+                finish();
+                overridePendingTransition(R.anim.slide_left_out, R.anim.slide_left_in);
+                break;
+            default:
+                break;
+
         }
+
         return super.onOptionsItemSelected(item);
     }
 

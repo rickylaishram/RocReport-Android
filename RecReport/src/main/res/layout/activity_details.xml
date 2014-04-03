@@ -4,66 +4,8 @@
     android:layout_height="match_parent"
     tools:context="com.rocreport.android.DetailsActivity">
 
-    <ImageView
-        android:id="@+id/photo"
-        android:scaleType="centerCrop"
-        android:layout_width="fill_parent"
-        android:layout_height="250dp"
-        android:layout_alignParentTop="true"/>
-    <TextView
-        android:textSize="28sp"
-        android:textColor="#ffffffff"
-        android:paddingBottom="8dp"
-        android:paddingTop="8dp"
-        android:paddingRight="16dp"
-        android:paddingLeft="16dp"
-        android:layout_alignBottom="@id/photo"
-        android:id="@+id/category"
-        android:background="#99000000"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
-    <TextView
-        android:layout_below="@id/photo"
-        android:id="@+id/title"
-        android:paddingBottom="8dp"
-        android:paddingTop="8dp"
-        android:paddingRight="16dp"
-        android:paddingLeft="16dp"
-        android:textSize="16sp"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
-    <TextView
-        android:layout_below="@id/title"
-        android:id="@+id/description"
-        android:paddingBottom="8dp"
-        android:paddingTop="8dp"
-        android:paddingRight="18dp"
-        android:paddingLeft="16dp"
-        android:textSize="14sp"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
-    <TextView
-        android:layout_below="@id/description"
-        android:id="@+id/date"
-        android:paddingBottom="8dp"
-        android:paddingTop="8dp"
-        android:paddingRight="16dp"
-        android:paddingLeft="16dp"
-        android:textSize="14sp"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
-    <TextView
-        android:layout_below="@id/date"
-        android:id="@+id/address"
-        android:paddingBottom="8dp"
-        android:paddingTop="8dp"
-        android:paddingRight="16dp"
-        android:paddingLeft="16dp"
-        android:textSize="14sp"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
-
     <LinearLayout
+        android:id="@+id/bottom"
         android:layout_alignParentBottom="true"
         android:orientation="horizontal"
         android:layout_width="fill_parent"
@@ -78,16 +20,72 @@
             android:background="@android:color/holo_blue_bright"
             android:textColor="@android:color/white"
             android:layout_height="wrap_content" />
-        <ImageButton
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:id="@+id/map"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:src="@drawable/ic_7_location_place"
-            android:background="@android:color/holo_blue_bright"
-            android:textColor="@android:color/white"
-            android:layout_height="wrap_content" />
         </LinearLayout>
+
+    <LinearLayout
+        android:layout_alignParentTop="true"
+        android:layout_above="@id/bottom"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical">
+        <RelativeLayout
+            android:layout_weight="3"
+            android:layout_width="fill_parent"
+            android:layout_height="0dp">
+            <ImageView
+                android:id="@+id/photo"
+                android:scaleType="centerCrop"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_alignParentTop="true"/>
+            <TextView
+                android:textSize="28sp"
+                android:textColor="#ffffffff"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp"
+                android:paddingRight="16dp"
+                android:paddingLeft="16dp"
+                android:layout_alignParentTop="true"
+                android:id="@+id/category"
+                android:background="#99000000"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/address"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp"
+                android:paddingRight="16dp"
+                android:paddingLeft="16dp"
+                android:textSize="14sp"
+                android:layout_alignBottom="@id/photo"
+                android:text="Address"
+                android:textColor="#ffffffff"
+                android:background="#99000000"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/description"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp"
+                android:paddingRight="18dp"
+                android:paddingLeft="16dp"
+                android:textSize="14sp"
+                android:text="Description"
+                android:textColor="#ffffffff"
+                android:background="#99000000"
+                android:layout_above="@id/address"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </RelativeLayout>
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.MapFragment"
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2"
+            android:layout_below="@id/photo"/>
+    </LinearLayout>
 
 </RelativeLayout>

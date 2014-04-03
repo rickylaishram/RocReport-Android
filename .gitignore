@@ -11,3 +11,5 @@ build/
 *.ear
 
 RecReport/src/main/java/com/rocreport/utils/utils/Constants.java
+
+RecReport/src/main/res/values/keys.xml
