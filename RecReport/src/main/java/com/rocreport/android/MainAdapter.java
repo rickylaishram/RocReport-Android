@@ -71,6 +71,8 @@ public class MainAdapter extends ArrayAdapter <MainData>{
 
         if(!item.has_voted) {
             holder.iv_voted.setVisibility(View.INVISIBLE);
+        } else {
+            holder.iv_voted.setVisibility(View.VISIBLE);
         }
 
         return row;
