@@ -88,21 +88,14 @@ public class ReportActivity extends Activity implements GooglePlayServicesClient
     private Location mCurrentLocation;
     private LocationRequest mLocationRequest;
 
-    private String IMAGE_URL;
-    private String FORMATTED_ADDRESS;
-    private String COUNTRY;
-    private String ADMIN_AREA_LEVEL_1;
-    private String ADMIN_AREA_LEVEL_2;
-    private String LOCALITY;
+    private String IMAGE_URL, FORMATTED_ADDRESS, COUNTRY, ADMIN_AREA_LEVEL_1, ADMIN_AREA_LEVEL_2, LOCALITY;
 
     private ProgressDialog pDialog;
     private Context CTX;
 
     private Spinner spinner;
-    private ImageButton btnCamera;
-    private ImageButton btnSend;
-    private EditText etLocation;
-    private EditText details;
+    private ImageButton btnCamera, btnSend;
+    private EditText etLocation, details;
 
     public static final int UPDATE_INTERVAL_IN_SECONDS = 5;
     private static final int FASTEST_INTERVAL_IN_SECONDS = 1;
@@ -116,11 +109,14 @@ public class ReportActivity extends Activity implements GooglePlayServicesClient
 
         getActionBar().setBackgroundDrawable(getResources().getDrawable(android.R.color.holo_blue_dark));
         getActionBar().setTitle("Report");
+        getActionBar().setDisplayHomeAsUpEnabled(true);
+
         CTX = this;
         mLocationClient = new LocationClient(this, this, this);
         mLocationRequest = new LocationRequest();
 
         setUI();
+        initializeLocationListener();
     }
 
     private void initializeLocationListener() {

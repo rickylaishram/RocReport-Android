@@ -17,6 +17,13 @@
             android:layout_width="fill_parent"
             android:layout_height="fill_parent" />
 
+        <ImageView
+            android:id="@+id/green"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/bg_green_traingle"
+            android:layout_alignParentRight="true"/>
+
         <LinearLayout
             android:orientation="vertical"
             android:layout_alignParentBottom="true"
@@ -44,7 +51,7 @@
                     android:paddingTop="8dp"
                     android:paddingBottom="8dp"
                     android:id="@+id/date"
-                    android:text="Category"
+                    android:text="Date"
                     android:textColor="#ffffffff"
                     android:textSize="12sp"
                     android:layout_width="0dp"
