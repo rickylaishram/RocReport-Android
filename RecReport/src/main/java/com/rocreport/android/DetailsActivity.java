@@ -50,6 +50,8 @@ public class DetailsActivity extends Activity {
     private String datCategory, datPicture, datId, datLongitude, datLatitude, datLocname, datEmail, datCreated, datDetails, datScore, datVote, datInform;
     private Boolean datVoted, datIninform;
 
+    private Boolean hasVoted = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -144,6 +146,9 @@ public class DetailsActivity extends Activity {
 
         switch (id) {
             case android.R.id.home:
+                Intent intent = new Intent();
+                intent.getBooleanExtra("voted", hasVoted);
+                setResult(Activity.RESULT_OK, intent);
                 finish();
                 overridePendingTransition(R.anim.slide_left_out, R.anim.slide_left_in);
                 break;
@@ -157,7 +162,15 @@ public class DetailsActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        //super.onBackPressed();
+        Intent intent = new Intent();
+        intent.putExtra("voted", hasVoted);
+        if(getParent() == null) {
+            setResult(Activity.RESULT_OK, intent);
+        } else {
+            getParent().setResult(Activity.RESULT_OK, intent);
+        }
+        finish();
         overridePendingTransition(R.anim.slide_left_out, R.anim.slide_left_in);
     }
 
@@ -183,6 +196,7 @@ public class DetailsActivity extends Activity {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody){
+                hasVoted = true;
                 btnVote.setEnabled(false);
                 btnVote.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
                 pDialog.dismiss();
