@@ -32,6 +32,12 @@ import com.squareup.picasso.Picasso;
 import org.apache.http.Header;
 import org.json.JSONArray;
 
+import static com.rocreport.utils.utils.Constants.API_ENDPOINT;
+import static com.rocreport.utils.utils.Constants.API_REPORT_VOTE;
+import static com.rocreport.utils.utils.Constants.CLIENT_ID;
+import static com.rocreport.utils.utils.Constants.SP_AUTH;
+import static com.rocreport.utils.utils.Constants.SP_AUTH_TOKEN;
+
 public class DetailsActivity extends Activity {
 
     private Context ctx;
@@ -54,31 +60,10 @@ public class DetailsActivity extends Activity {
         getActionBar().setDisplayHomeAsUpEnabled(true);
         ctx = this;
 
-        setUi();
         getBundleData(getIntent().getExtras());
+        setUi();
         setData();
         setFont();
-
-        /*btn_vote.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sendVote(id);
-            }
-        });
-
-        btn_map.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String[] latlng = loc_coord.split(";");
-                String uriBegin = "geo:" + latlng[0] + "," + latlng[1];
-                String query = latlng[0] + "," + latlng[1];
-                String encodedQuery = Uri.encode(query);
-                String uriString = uriBegin + "?q=" + encodedQuery;
-                Uri uri = Uri.parse(uriString);
-                Intent intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
-                startActivity(intent);
-            }
-        });*/
     }
 
     private void setFont() {
@@ -92,6 +77,11 @@ public class DetailsActivity extends Activity {
         tvCategory.setText(datCategory);
         tvAddress.setText(datLocname);
         tvDescription.setText(datDetails);
+
+        if(datVoted) {
+            btnVote.setEnabled(false);
+            btnVote.setBackgroundColor(ctx.getResources().getColor(android.R.color.holo_green_light));
+        }
 
         Picasso.with(ctx).load(datPicture).into(ivPhoto);
 
@@ -111,6 +101,8 @@ public class DetailsActivity extends Activity {
         ivPhoto = (ImageView) findViewById(R.id.photo);
         btnVote = (ImageButton) findViewById(R.id.vote);
         mMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+
+        btnVote.setOnClickListener(voteHandler);
     }
 
     private void getBundleData(Bundle bundle) {
@@ -130,6 +122,13 @@ public class DetailsActivity extends Activity {
         datIninform = bundle.getBoolean("in_inform");
 
     }
+
+    private View.OnClickListener voteHandler = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            sendVote();
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -162,20 +161,17 @@ public class DetailsActivity extends Activity {
         overridePendingTransition(R.anim.slide_left_out, R.anim.slide_left_in);
     }
 
-
-    public void sendVote(String id) {
-    /*    SharedPreferences sp = getSharedPreferences(SP_USER_AUTH, MODE_PRIVATE);
-        String emails = sp.getString(SP_USER_EMAIL, null);
-        String passwords = sp.getString(SP_USER_PASS, null);
+    public void sendVote() {
+        SharedPreferences sp = ctx.getSharedPreferences(SP_AUTH, MODE_PRIVATE);
+        String token = sp.getString(SP_AUTH_TOKEN, null);
 
         RequestParams params = new RequestParams();
-        params.put("ismobile", "yes");
-        params.put("id", id);
-        params.put("passwords", passwords);
-        params.put("emails", emails);
+        params.put("report", datId);
+        params.put("id", CLIENT_ID);
+        params.put("token", token);
 
         AsyncHttpClient client = new AsyncHttpClient();
-        client.post(API_ENDPOINT_UPVOTE, params, new AsyncHttpResponseHandler(){
+        client.post(API_ENDPOINT+API_REPORT_VOTE, params, new AsyncHttpResponseHandler(){
 
             ProgressDialog pDialog = new ProgressDialog(ctx);
 
@@ -187,10 +183,8 @@ public class DetailsActivity extends Activity {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody){
-                String resp = new String(responseBody);
-                ((ImageButton) findViewById(R.id.vote)).setEnabled(false);
-                ((ImageButton) findViewById(R.id.vote)).setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
-                Log.v("Login response", resp);
+                btnVote.setEnabled(false);
+                btnVote.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
                 pDialog.dismiss();
             }
 
@@ -201,20 +195,6 @@ public class DetailsActivity extends Activity {
                 Log.v("Login response", resp);
                 pDialog.dismiss();
             }
-
-            @Override
-            public void onRetry() {
-                // Request was retried
-            }
-
-            @Override
-            public void onProgress(int bytesWritten, int totalSize) {
-                // Progress notification
-            }
-
-            @Override
-            public void onFinish() {
-            }
-        });*/
+        });
     }
 }

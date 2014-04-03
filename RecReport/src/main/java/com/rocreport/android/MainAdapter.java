@@ -46,6 +46,7 @@ public class MainAdapter extends ArrayAdapter <MainData>{
 
             holder = new Holder();
             holder.iv_back = (ImageView) row.findViewById(R.id.image);
+            holder.iv_voted = (ImageView) row.findViewById(R.id.green);
             holder.tv_title = (TextView) row.findViewById(R.id.title);
             holder.tv_category = (TextView) row.findViewById(R.id.category);
             holder.tv_date = (TextView) row.findViewById(R.id.date);
@@ -68,6 +69,10 @@ public class MainAdapter extends ArrayAdapter <MainData>{
 
         Picasso.with(context).load(item.picture).into(holder.iv_back);
 
+        if(!item.has_voted) {
+            holder.iv_voted.setVisibility(View.INVISIBLE);
+        }
+
         return row;
     }
 
@@ -75,6 +80,7 @@ public class MainAdapter extends ArrayAdapter <MainData>{
         public TextView tv_title;
         public TextView tv_category;
         public ImageView iv_back;
+        public ImageView iv_voted;
         public TextView tv_date;
     }
 }
