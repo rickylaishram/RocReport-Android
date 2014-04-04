@@ -122,7 +122,6 @@ public class DetailsActivity extends Activity {
         datInform = bundle.getString("inform_count");
         datVoted = bundle.getBoolean("has_votes");
         datIninform = bundle.getBoolean("in_inform");
-
     }
 
     private View.OnClickListener voteHandler = new View.OnClickListener() {
