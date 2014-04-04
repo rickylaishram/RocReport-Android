@@ -26,7 +26,8 @@ public class SplashActivity extends Activity {
 
         SharedPreferences sp = this.getSharedPreferences(SP_AUTH, MODE_PRIVATE);
         if(sp.getString(SP_AUTH_TOKEN, null) != null) {
-            Intent mIntent = new Intent(SplashActivity.this, MainActivity.class);
+            //Intent mIntent = new Intent(SplashActivity.this, MainActivity.class);
+            Intent mIntent = new Intent(SplashActivity.this, ReportsListActivity.class);
             startActivity(mIntent);
             finish();
         }
