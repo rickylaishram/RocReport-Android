@@ -50,7 +50,8 @@ import static com.rocreport.utils.utils.Constants.SP_AUTH_TOKEN;
 
 
 public class ReportsListActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks, GooglePlayServicesClient.ConnectionCallbacks,
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks,
+        GooglePlayServicesClient.ConnectionCallbacks,
         GooglePlayServicesClient.OnConnectionFailedListener {
 
     private NavigationDrawerFragment mNavigationDrawerFragment;
@@ -207,7 +208,8 @@ public class ReportsListActivity extends Activity
         @Override
         public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
 
-            if(((firstVisibleItem + visibleItemCount + threshold) > data.size()) && (data.size() != 0) && !fetching && !enddata && !MAIN_REFRESH_LOCK) {
+            if(((firstVisibleItem + visibleItemCount + threshold) > data.size())
+                    && (data.size() != 0) && !fetching && !enddata && !MAIN_REFRESH_LOCK) {
                 page ++;
                 fetchData(page, TYPE, mCurrentLocation, radius, limit);
             }
@@ -301,18 +303,32 @@ public class ReportsListActivity extends Activity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
+        getMenuInflater().inflate(R.menu.reports, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_refresh) {
-            refresh_enabled = true;
-            refreshData();
-            return true;
+        Intent mIntent;
+
+        switch (id) {
+            case R.id.action_refresh:
+                refresh_enabled = true;
+                refreshData();
+                return true;
+            case R.id.action_settings:
+                mIntent = new Intent(ReportsListActivity.this, SettingsActivity.class);
+                startActivity(mIntent);
+                overridePendingTransition(R.anim.slide_right_in,R.anim.slide_right_out);
+                return true;
+            case R.id.action_about:
+                mIntent = new Intent(ReportsListActivity.this, AboutActivity.class);
+                startActivity(mIntent);
+                overridePendingTransition(R.anim.slide_right_in,R.anim.slide_right_out);
+                return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -370,7 +386,8 @@ public class ReportsListActivity extends Activity
                                     report.getString("email"),
                                     report.getString("added_at"),
                                     report.getString("description"),
-                                    report.getJSONArray("update"),
+                                    (new JSONArray()),
+                                    //report.getJSONArray("update"),
                                     report.getString("score"),
                                     report.getString("inform_count"),
                                     report.getString("vote_count"),

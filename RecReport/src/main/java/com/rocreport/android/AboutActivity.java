@@ -12,8 +12,10 @@ public class AboutActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
-    }
 
+        getActionBar().setDisplayHomeAsUpEnabled(true);
+        getActionBar().setBackgroundDrawable(getResources().getDrawable(android.R.color.holo_blue_bright));
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -33,6 +35,13 @@ public class AboutActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
+        overridePendingTransition(R.anim.slide_left_out, R.anim.slide_left_in);
     }
 
 }
