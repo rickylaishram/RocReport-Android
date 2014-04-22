@@ -330,7 +330,7 @@ public class ReportActivity extends Activity implements GooglePlayServicesClient
         params.put("locality", LOCALITY);
         params.put("latitude", mCurrentLocation.getLatitude()+"");
         params.put("longitude", mCurrentLocation.getLongitude()+"");
-        params.put("category", spinner.getSelectedItem().toString());
+        params.put("category", (spinner.getSelectedItemPosition()+1)+"");
         params.put("description", details.getText().toString());
         params.put("picture", IMAGE_URL);
         params.put("novote", "true"); //Set to true for the time being
@@ -365,7 +365,7 @@ public class ReportActivity extends Activity implements GooglePlayServicesClient
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error){
                 String response = new String(responseBody);
-                Log.e("Error", response);
+                //Log.e("Error", response);
                 pDialog.dismiss();
                 Toast.makeText(CTX, "Something has gone wrong", Toast.LENGTH_LONG).show();
             }

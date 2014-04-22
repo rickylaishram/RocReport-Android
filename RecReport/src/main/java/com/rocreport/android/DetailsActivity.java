@@ -76,7 +76,7 @@ public class DetailsActivity extends Activity {
     }
 
     private void setData() {
-        tvCategory.setText(datCategory);
+        tvCategory.setText(datCategory.toUpperCase());
         tvAddress.setText(datLocname);
         tvDescription.setText(datDetails);
 
@@ -205,7 +205,7 @@ public class DetailsActivity extends Activity {
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error){
                 //tv_status.setText("Something went wrong :(");
                 String resp = new String(responseBody);
-                Log.v("Login response", resp);
+                //Log.v("Login response", resp);
                 pDialog.dismiss();
             }
         });

@@ -14,12 +14,14 @@
     <string name="hello_world">Hello world!</string>
 
     <string-array name="category_array">
-        <item>Trash</item>
-        <item>Abandoned Vehicle</item>
-        <item>Graffiti</item>
-        <item>Water Leak</item>
-        <item>Snow Pile Up</item>
-        <item>Broken Light</item>
+        <item>Vehicle Issue</item>
+        <item>Street, Road, Sidewalk</item>
+        <item>Animal Issue</item>
+        <item>Trash, Waste</item>
+        <item>Streetlight</item>
+        <item>Road Sign</item>
+        <item>Traffic Light</item>
+        <item>Plant, Tree</item>
     </string-array>
 
     <string name="title_activity_register">Register</string>
