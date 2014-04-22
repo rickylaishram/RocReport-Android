@@ -407,7 +407,7 @@ public class ReportsListActivity extends Activity
                     }
 
                 } catch (Exception e) {
-                    Log.e("Error", e.toString());
+                    //Log.e("Error", e.toString());
                 }
                 refresh.setRefreshing(false);
             }
@@ -415,7 +415,7 @@ public class ReportsListActivity extends Activity
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error){
                 String resp = new String(responseBody);
-                Log.e("Fetch Error", resp);
+                //Log.e("Fetch Error", resp);
                 refresh.setRefreshing(false);
             }
 

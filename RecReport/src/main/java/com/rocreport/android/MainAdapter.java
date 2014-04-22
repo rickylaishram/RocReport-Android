@@ -56,16 +56,16 @@ public class MainAdapter extends ArrayAdapter <MainData>{
             holder = (Holder) row.getTag();
         }
 
-        Typeface font_black = Typeface.createFromAsset(context.getAssets(), "Roboto-Black.ttf");
+        Typeface font_light = Typeface.createFromAsset(context.getAssets(), "Roboto-Light.ttf");
 
         MainData item = data.elementAt(position);
         holder.tv_title.setText(item.loc_name);
-        holder.tv_category.setText(item.category);
+        holder.tv_category.setText(item.category.toUpperCase());
         holder.tv_date.setText(item.created);
 
-        holder.tv_title.setTypeface(font_black);
-        holder.tv_category.setTypeface(font_black);
-        holder.tv_date.setTypeface(font_black);
+        holder.tv_title.setTypeface(font_light);
+        holder.tv_category.setTypeface(font_light);
+        holder.tv_date.setTypeface(font_light);
 
         Picasso.with(context).load(item.picture).into(holder.iv_back);
 

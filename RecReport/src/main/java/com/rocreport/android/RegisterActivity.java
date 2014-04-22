@@ -185,7 +185,7 @@ public class RegisterActivity extends Activity{
                     }
 
                 } catch (Exception e) {
-                    Log.e("RegisterActivity", e.getMessage());
+                    //Log.e("RegisterActivity", e.getMessage());
                 }
             }
 
