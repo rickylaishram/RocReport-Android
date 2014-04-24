@@ -9,6 +9,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
 
+    <uses-feature android:name="android.hardware.camera" android:required="true"></uses-feature>
+    <uses-feature android:name="android.hardware.location" android:required="true"></uses-feature>
+
     <permission
         android:name="com.rocreport.permission.MAPS_RECEIVE"
         android:protectionLevel="signature" />
@@ -18,7 +21,7 @@
     <application
         android:debuggable="false"
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/rocreport_logo"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <meta-data
